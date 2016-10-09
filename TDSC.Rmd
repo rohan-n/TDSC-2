@@ -117,3 +117,47 @@ cbi
 ```
 
 
+# HH Income, P(eggs|income)
+incomes = c(1,2,3,4,5,6,7,8,9,10,11,12)
+freq = rep(0,12)
+eggs_freqbyincome = rep(0,12)
+prob_hhincome_eggs= rep(0,12)
+freq_incomes = cbind(incomes,freq,eggs_freqbyincome,prob_hhincome_eggs)
+for (h in 1:length(households)){
+  hhincome = data[which(data$household_key == households[h]),"INCOME_DESC"][1]
+  if (!is.na(hhincome)) {
+    if(hhincome == 'Under 15K') 
+      hhincome = 1
+    if(hhincome == '15-24K') 
+      hhincome = 2
+    if(hhincome == '25-34K') 
+      hhincome = 3
+    if(hhincome == '35-49K') 
+      hhincome = 4
+    if(hhincome == '50-74K') 
+      hhincome = 5
+    if(hhincome == '75-99K') 
+      hhincome = 6
+    if(hhincome == '100-124K') 
+      hhincome = 7
+    if(hhincome == '125-149K') 
+      hhincome = 8
+    if(hhincome == '150-174K') 
+      hhincome = 9
+    if(hhincome == '175-199K') 
+      hhincome = 10
+    if(hhincome == '200-249K') 
+      hhincome = 11
+    if(hhincome == '250K+') 
+      hhincome = 12
+    freq_incomes[hhincome,2] = freq_incomes[hhincome,2]+1
+    if(households[h] %in% eggs$household_key)
+      freq_incomes[hhincome,3] = freq_incomes[hhincome,3]+1   
+  }
+}
+for(i in 1:12) {
+  freq_incomes[i,4] = freq_incomes[i,3]/freq_incomes[i,2]
+}
+write.csv(freq_incomes,'HHI_freqs')
+
+
