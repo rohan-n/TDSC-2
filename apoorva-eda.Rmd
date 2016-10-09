@@ -36,7 +36,7 @@ households = unique(data$household_key)
 households_cycle_variance = c()
 households_cycle_mean = c()
 household_rate_coefficients = c()
-last_egg_day = c()
+last_egg_days = c()
 for (i in 1:length(households)) {
   residual =  c()
   household = data[which(data$household_key == households[i]),]
@@ -55,7 +55,7 @@ for (i in 1:length(households)) {
     basket_day = unique(basket$DAY)
     egg_basket_days = c(egg_basket_days, basket_day)
   }
-  last_egg_day = c(last_egg_day, egg_basket_days[length(egg_basket_days)])
+  last_egg_days = c(last_egg_days, egg_basket_days[length(egg_basket_days)])
   day_differences = c()
   if (length(egg_basket_days) > 1) {
     for (basket_day_index in 2:length(egg_basket_days)) {
@@ -90,6 +90,7 @@ for (i in 1:length(households)) {
   baskets = unique(household$BASKET_ID)
   cutoff = sample(length(baskets), 1)
   cutoff_basket = household[which(household$BASKET_ID == baskets[cutoff]),]
+  cutoff_day = unique(cutoff_basket$DAY)
   has_eggs = sum(cutoff_basket$COMMODITY_DESC == 'EGGS')
   test = c(test, has_eggs)
   last_egg_day = 0
@@ -98,13 +99,16 @@ for (i in 1:length(households)) {
       basket = household[which(household$BASKET_ID == baskets[i]),]
       has_eggs = sum(basket$COMMODITY_DESC == 'EGGS')
       if (has_eggs > 0) {
-        last_egg_day = basket$DAY
+        last_egg_day = unique(basket$DAY)
       } 
     }
   }
-  prob = pexp(abs(711 - last_egg_day[i]), rate = household_rate_coefficients[i]) - 0.01
+  prob = pexp(abs(cutoff_day - last_egg_day), rate = household_rate_coefficients[i]) - 0.01
+  if (is.nan(prob)) {
+    prob = 0.12768
+  }
   if (is.na(prob)) {
-    prob = mean(probs)
+    prob = 0.12768
   }
   probs = c(probs, prob)
 }
@@ -114,11 +118,12 @@ probs
 ```
 
 ```{r}
-brier_score = function(data, rates) {
-  last_egg_day = c()
+brier_score = function(data, test, train) {
   households = unique(data$household_key)
-  
-  }
+  vals = (train*(0.12768))/((train*0.12768)+(1-train)*(1-0.12768))
+  total = sum((train - vals)^2)/length(households)
+  return (total)
+}
 ```
 
 ```{r}
