@@ -118,10 +118,9 @@ probs
 ```
 
 ```{r}
-brier_score = function(data, test, train) {
+brier_score = function(data, test, vals) {
   households = unique(data$household_key)
-  vals = (train*(0.12768))/((train*0.12768)+(1-train)*(1-0.12768))
-  total = sum((train - vals)^2)/length(households)
+  total = sum((vals - test)^2)/length(households)
   return (total)
 }
 ```
@@ -139,5 +138,59 @@ lines(1:length(unique(data$DAY)), shoppers_that_day)
 ```{r}
 households_cycle_mean[1]
 pexp(15.54, households_cycle_mean[1], rate = (1/households_cycle_mean[1]))
+```
+
+```{r}
+sizes = read.csv('HH_freqs.csv')
+size_probs = sizes$prob_hhsize_eggs
+calculate = function(data, size_probs, p_eggs) {
+  avg_size_prob = mean(size_probs)
+  cycle_probs = c()
+  hh_size_prob = c()
+  households = unique(data$household_key)
+  return.df = data.frame(matrix(nrow = length(households)))
+  return.df = cbind(return.df, households)
+  for (i in 1:length(households)) {
+    household = data[which(data$household_key == households[i]),]
+    hh_size = unique(household$HOUSEHOLD_SIZE_DESC)
+    if (!is.na(hh_size)) {
+      if(hh_size == '5+') { 
+        hh_size = 5
+      }
+      hh_size_prob = c(hh_size_prob, size_probs[which(sizes$sizes == hh_size)])
+    }
+    else {
+      hh_size_prob = c(hh_size_prob, avg_size_prob)
+    }
+    baskets = unique(household$BASKET_ID)
+    last_egg_day = 0
+    for (i in 1:length(baskets)) {
+      if (i < cutoff) {
+        basket = household[which(household$BASKET_ID == baskets[i]),]
+        has_eggs = sum(basket$COMMODITY_DESC == 'EGGS')
+        if (has_eggs > 0) {
+          last_egg_day = unique(basket$DAY)
+        } 
+      }
+    }
+    prob = pexp(abs(cutoff_day - last_egg_day), rate = household_rate_coefficients[i]) - 0.1
+    if (is.nan(prob)) {
+      prob = p_eggs
+    }
+    if (is.na(prob)) {
+      prob = p_eggs
+    }
+    cycle_probs = c(cycle_probs, prob)
+  }
+  train = cycle_probs * hh_size_prob
+  opp = (1-cycle_probs) * (1-hh_size_prob)
+  vals = (train*p_eggs)/((train*p_eggs)+(opp)*(1-p_eggs))
+  return (vals)
+}
+
+without_last_day = data[]
+train = calculate(data, size_probs, 0.12768)
+
+
 ```
 
