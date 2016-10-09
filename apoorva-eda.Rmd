@@ -5,6 +5,11 @@ date: "October 7, 2016"
 output: html_document
 ---
 ```{r}
+require(vcd)
+require(MASS)
+```
+
+```{r}
 data = read.csv('transaction_data_8451.csv')
 View(data)
 colnames(data)
@@ -23,5 +28,111 @@ for (basket in unique(data$BASKET_ID)) {
   purchases_matrix = rbind(purchases_matrix, purchase_vec)
 }
 dim(purchases_matrix)
+```
+Cylicality
+```{r}
+# we're trying to find if the purchase of eggs for each household is "cylical". The way we're measuring this is by checking the days between each purchase of eggs, and then checking if the number of days in between has high or low variance. Ex. if a household buys a basket with eggs every 25 days exactly, we would call that cylical. But if one day they buy it, then the next day, and then 28 days later, then it would not be cylical. 
+households = unique(data$household_key)
+households_cycle_variance = c()
+households_cycle_mean = c()
+household_rate_coefficients = c()
+last_egg_day = c()
+for (i in 1:length(households)) {
+  residual =  c()
+  household = data[which(data$household_key == households[i]),]
+  baskets = unique(household$BASKET_ID)
+  num_baskets = length(baskets)
+  contains_eggs_basket_ids = c()
+  for (j in 1:num_baskets) {
+    basket = household[which(household$BASKET_ID == baskets[j]),]
+    if (sum(basket$COMMODITY_DESC == 'EGGS') > 0){
+      contains_eggs_basket_ids = c(contains_eggs_basket_ids, basket$BASKET_ID)
+    }
+  }  
+  egg_basket_days = c()
+  for (egg_basket_id in 1:length(unique(contains_eggs_basket_ids))) {
+    basket =  household[which(household$BASKET_ID == unique(contains_eggs_basket_ids)[egg_basket_id]),]
+    basket_day = unique(basket$DAY)
+    egg_basket_days = c(egg_basket_days, basket_day)
+  }
+  last_egg_day = c(last_egg_day, egg_basket_days[length(egg_basket_days)])
+  day_differences = c()
+  if (length(egg_basket_days) > 1) {
+    for (basket_day_index in 2:length(egg_basket_days)) {
+      day_differences = c(day_differences, egg_basket_days[basket_day_index] - egg_basket_days[basket_day_index-1])
+    } 
+  }
+  else {
+    day_differences = c(day_differences, mean(households_cycle_mean, na.rm = TRUE))
+  }
+  if (length(day_differences) > 1) {
+    rate = fitdistr(na.omit(abs(day_differences - mean(day_differences))), "exponential")$estimate
+    if (!is.na(rate)) {
+    household_rate_coefficients = c(household_rate_coefficients, rate)
+    }
+    else {
+       household_rate_coefficients = c(household_rate_coefficients, mean(household_rate_coefficients[-(which(is.na(household_rate_coefficients)))], na.rm = TRUE))
+    }
+  }
+  else {
+    household_rate_coefficients = c(household_rate_coefficients, mean(household_rate_coefficients[-(which(is.infinite(household_rate_coefficients)))], na.rm = TRUE))
+  }
+  households_cycle_variance = c(households_cycle_variance, sd(day_differences))
+  households_cycle_mean = c(households_cycle_mean, mean(day_differences))
+}
+
+household_rate_coefficients
+probs = c()
+test = c()
+train = c()
+for (i in 1:length(households)) {
+  household = data[which(data$household_key == households[i]),]
+  baskets = unique(household$BASKET_ID)
+  cutoff = sample(length(baskets), 1)
+  cutoff_basket = household[which(household$BASKET_ID == baskets[cutoff]),]
+  has_eggs = sum(cutoff_basket$COMMODITY_DESC == 'EGGS')
+  test = c(test, has_eggs)
+  last_egg_day = 0
+  for (i in 1:length(baskets)) {
+    if (i < cutoff) {
+      basket = household[which(household$BASKET_ID == baskets[i]),]
+      has_eggs = sum(basket$COMMODITY_DESC == 'EGGS')
+      if (has_eggs > 0) {
+        last_egg_day = basket$DAY
+      } 
+    }
+  }
+  prob = pexp(abs(711 - last_egg_day[i]), rate = household_rate_coefficients[i]) - 0.01
+  if (is.na(prob)) {
+    prob = mean(probs)
+  }
+  probs = c(probs, prob)
+}
+
+hist(probs)
+probs
+```
+
+```{r}
+brier_score = function(data, rates) {
+  last_egg_day = c()
+  households = unique(data$household_key)
+  
+  }
+```
+
+```{r}
+shoppers_that_day = c()
+for (day in 1:length(unique(data$DAY))) {
+  shoppers = length(unique(data$BASKET_ID[which(data$DAY == unique(data$DAY)[day])]))
+  print (shoppers)
+  shoppers_that_day = c(shoppers_that_day, shoppers)
+}
+lines(1:length(unique(data$DAY)), shoppers_that_day)
+```
+
+```{r}
+households_cycle_mean[1]
+pexp(15.54, households_cycle_mean[1], rate = (1/households_cycle_mean[1]))
 ```
 
