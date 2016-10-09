@@ -17,6 +17,34 @@ egg_hh <- sum(unique(eggs$household_key))
 all_hh <- sum(unique(data$household_key))
 prob_eggs_hh <- egg_hh/all_hh
 households = unique(data$household_key)
+commodities <- as.character(unique(data$COMMODITY_DESC))
+baskets = unique(data$BASKET_ID)
+```
+
+```{r}
+# Complementary Commodities
+freq_bought = rep(0,length(commodities))
+freq_boughtwitheggs = rep(0,length(commodities))
+prob_boughtwitheggs = rep(0,length(commodities))
+freq_comps <- cbind(commodities,freq_bought,freq_boughtwitheggs,prob_boughtwitheggs)
+for(i in 1:length(commodities)) {
+  comm = commodities[i]
+  num_baskets_in = 0
+  num_baskets_in_with_eggs = 0
+  subbasket = data[which(data$COMMODITY_DESC == comm),]
+  num_baskets_in = nrow(subbasket)
+  baskid = unique(subbasket$BASKET_ID)
+  for(k in 1:length(baskid)) {
+    id = baskid[k]
+    if('EGGS' %in% data[which(data$BASKET_ID == id),'COMMODITY_DESC']) {
+      num_baskets_in_with_eggs = num_baskets_in_with_eggs+1
+    }
+  }
+  freq_comps[i,2] = as.numeric(num_baskets_in)
+  freq_comps[i,3] = as.numeric(num_baskets_in_with_eggs)
+  freq_comps[i,4] = as.numeric(freq_comps[i,3])/as.numeric(freq_comps[i,2])
+}
+write.csv(freq_comps,'Complementary Goods')
 ```
 
 ```{r}
@@ -43,45 +71,30 @@ write.csv(freq_sizes,'HH_freqs')
 ```
 
 ```{r}
-commodities <- unique(data$COMMODITY_DESC)
+
 prob_in_basket_with_eggs <= data.frame()
 cbi
 
-for(i in commodities) {
-  comm = commodities[i]
-  for(j in households) {
-    hh = data[which(data$household_key == households[i]),]
-    baskets = unique(hh$BASKET_ID)
-    # sbc = successful_basket_count
-    sbc <- 0
-      for(k in baskets) {
-        bask = baskets[k]
-        if(sum(bask$COMM_DESC == 'EGGS')>1)
-          sbc <- sbc+1
-      }
-    prob_comm <sbc/length(baskets)
-    prob_in_basket_with_eggs[j,i]
-  }
-}
 
 
 
-for (i in 1:length(households)) {
+
+#for (i in 1:length(households)) {
   household = data[which(data$household_key == households[i]),]
   
   num_baskets = length(baskets)
   count_egg_and_comm = 0
-  for(basket in num_baskets) {
+  #for(basket in num_baskets) {
     bask = household[which(household$BASKET_ID == baskets[i])]
     commodities = unique(bask$COMMODITY_DESC)
-    for (comm in commodities){
+   # for (comm in commodities){
       numbasketscomIn
-      if ('EGGS' %in% bask$COMMODITY_DESC) {
+    #  if ('EGGS' %in% bask$COMMODITY_DESC) {
         count_egg_and_comm <- count_egg_and_comm + 1
-        }
+  #      }
         
-  }  
-}
+ # }  
+#}
 ```
 
 
