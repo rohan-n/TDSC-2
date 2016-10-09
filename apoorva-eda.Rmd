@@ -88,7 +88,7 @@ train = c()
 for (i in 1:length(households)) {
   household = data[which(data$household_key == households[i]),]
   baskets = unique(household$BASKET_ID)
-  cutoff = sample(length(baskets), 1)
+  cutoff = length(baskets)
   cutoff_basket = household[which(household$BASKET_ID == baskets[cutoff]),]
   cutoff_day = unique(cutoff_basket$DAY)
   has_eggs = sum(cutoff_basket$COMMODITY_DESC == 'EGGS')
@@ -189,8 +189,8 @@ calculate = function(data, size_probs, p_eggs) {
 }
 
 without_last_day = data[]
-train = calculate(data, size_probs, 0.12768)
+train = calculate(data, size_probs, 0.1571872)
 
-
+hist(train, freq = FALSE)
 ```
 
