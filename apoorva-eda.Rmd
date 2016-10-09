@@ -1,0 +1,27 @@
+---
+title: "EDA TDSC"
+author: "Apoorva Havanur"
+date: "October 7, 2016"
+output: html_document
+---
+```{r}
+data = read.csv('transaction_data_8451.csv')
+View(data)
+colnames(data)
+length(unique(data$household_key))
+length(unique(data$PRODUCT_ID))
+unique(data$BASKET_ID)
+purchases_matrix = data.frame()
+for (basket in unique(data$BASKET_ID)) {
+  purchases = data[which(data$BASKET_ID == basket),]
+  purchase_vec = rep(0, length = length(unique(data$PRODUCT_ID)))
+  for (j in 1:nrow(purchases)) {
+    purchase = purchases[j,]
+    index = which(unique(data$PRODUCT_ID) == purchase$PRODUCT_ID)
+    purchase_vec[index] = purchase_vec[index] + 1
+  }
+  purchases_matrix = rbind(purchases_matrix, purchase_vec)
+}
+dim(purchases_matrix)
+```
+
