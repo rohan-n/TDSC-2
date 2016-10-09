@@ -1,0 +1,100 @@
+---
+title: "TDSC"
+author: "Rohan"
+date: "October 8, 2016"
+output: 
+---
+
+```{r}
+setwd("TDSC")
+data<- read.csv("transaction_data_8451.csv")
+eggs <- data[which(data$COMMODITY_DESC == 'EGGS'),]
+# Probability that a household has bought eggs 
+egg_baskets <- sum(unique(eggs$BASKET_ID))
+all_baskets <- sum(unique(data$BASKET_ID))
+prob_eggs_basket <- egg_baskets/all_baskets
+egg_hh <- sum(unique(eggs$household_key))
+all_hh <- sum(unique(data$household_key))
+prob_eggs_hh <- egg_hh/all_hh
+households = unique(data$household_key)
+commodities <- as.character(unique(data$COMMODITY_DESC))
+baskets = unique(data$BASKET_ID)
+```
+
+```{r}
+# Complementary Commodities
+freq_bought = rep(0,length(commodities))
+freq_boughtwitheggs = rep(0,length(commodities))
+prob_boughtwitheggs = rep(0,length(commodities))
+freq_comps <- cbind(commodities,freq_bought,freq_boughtwitheggs,prob_boughtwitheggs)
+for(i in 1:length(commodities)) {
+  comm = commodities[i]
+  num_baskets_in = 0
+  num_baskets_in_with_eggs = 0
+  subbasket = data[which(data$COMMODITY_DESC == comm),]
+  num_baskets_in = nrow(subbasket)
+  baskid = unique(subbasket$BASKET_ID)
+  for(k in 1:length(baskid)) {
+    id = baskid[k]
+    if('EGGS' %in% data[which(data$BASKET_ID == id),'COMMODITY_DESC']) {
+      num_baskets_in_with_eggs = num_baskets_in_with_eggs+1
+    }
+  }
+  freq_comps[i,2] = as.numeric(num_baskets_in)
+  freq_comps[i,3] = as.numeric(num_baskets_in_with_eggs)
+  freq_comps[i,4] = as.numeric(freq_comps[i,3])/as.numeric(freq_comps[i,2])
+}
+write.csv(freq_comps,'Complementary Goods')
+```
+
+```{r}
+# HH Size, P(eggs|size)
+sizes = c(1,2,3,4,5)
+freq = rep(0,5)
+eggs_freqbysize = rep(0,5)
+prob_hhsize_eggs= rep(0,5)
+freq_sizes = cbind(sizes,freq,eggs_freqbysize,prob_hhsize_eggs)
+for (h in 1:length(households)){
+  hhsize = data[which(data$household_key == households[h]),"HOUSEHOLD_SIZE_DESC"][1]
+  if (!is.na(hhsize)) {
+    if(hhsize == '5+') 
+      hhsize = 5
+    freq_sizes[hhsize,2] = freq_sizes[hhsize,2]+1
+    if(households[h] %in% eggs$household_key)
+      freq_sizes[hhsize,3] = freq_sizes[hhsize,3]+1   
+  }
+}
+for(i in 1:5) {
+  freq_sizes[i,4] = freq_sizes[i,3]/freq_sizes[i,2]
+}
+write.csv(freq_sizes,'HH_freqs')
+```
+
+```{r}
+
+prob_in_basket_with_eggs <= data.frame()
+cbi
+
+
+
+
+
+#for (i in 1:length(households)) {
+  household = data[which(data$household_key == households[i]),]
+  
+  num_baskets = length(baskets)
+  count_egg_and_comm = 0
+  #for(basket in num_baskets) {
+    bask = household[which(household$BASKET_ID == baskets[i])]
+    commodities = unique(bask$COMMODITY_DESC)
+   # for (comm in commodities){
+      numbasketscomIn
+    #  if ('EGGS' %in% bask$COMMODITY_DESC) {
+        count_egg_and_comm <- count_egg_and_comm + 1
+  #      }
+        
+ # }  
+#}
+```
+
+
