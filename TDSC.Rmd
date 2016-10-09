@@ -70,6 +70,25 @@ for(i in 1:5) {
 write.csv(freq_sizes,'HH_freqs')
 ```
 
+```{r} 
+# Loyalty
+loy_subset = data[which(data$LOY_CARD_DISC != 0.00),]
+length(unique(loy_subset$household_key))
+savings <- ((data$BASE_SPEND_AMT-data$NET_SPEND_AMT)/data$BASE_SPEND_AMT)*100
+data <- cbind(data,savings)
+data[which(is.na(data$savings)),] = 0
+data[which(data$savings < 0),] = 0
+eggs = data[which(data$COMMODITY_DESC == 'EGGS'),]
+noteggs = data[which(data$COMMODITY_DESC != 'EGGS'),]
+# Difference between savings of egg-buyers and not egg-buyers 
+mean(eggs$savings) - mean(noteggs$savings)
+# "People who buy eggs save on average 5.788% less"
+```
+
+```{r}
+# Independence tests: how close 
+```
+
 ```{r}
 
 prob_in_basket_with_eggs <= data.frame()
