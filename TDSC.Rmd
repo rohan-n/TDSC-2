@@ -24,7 +24,8 @@ households = unique(data$household_key)
 sizes = c(1,2,3,4,5)
 freq = rep(0,5)
 eggs_freqbysize = rep(0,5)
-freq_sizes = cbind(sizes,freq,eggs_freqbysize)
+prob_hhsize_eggs= rep(0,5)
+freq_sizes = cbind(sizes,freq,eggs_freqbysize,prob_hhsize_eggs)
 for (h in 1:length(households)){
   hhsize = data[which(data$household_key == households[h]),"HOUSEHOLD_SIZE_DESC"][1]
   if (!is.na(hhsize)) {
@@ -35,7 +36,10 @@ for (h in 1:length(households)){
       freq_sizes[hhsize,3] = freq_sizes[hhsize,3]+1   
   }
 }
-
+for(i in 1:5) {
+  freq_sizes[i,4] = freq_sizes[i,3]/freq_sizes[i,2]
+}
+write.csv(freq_sizes,'HH_freqs')
 ```
 
 ```{r}
